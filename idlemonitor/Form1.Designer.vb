@@ -38,11 +38,11 @@ Partial Class IdleMonitor
         '
         'TextBox1
         '
-        Me.TextBox1.Location = New System.Drawing.Point(65, 51)
+        Me.TextBox1.Location = New System.Drawing.Point(11, 26)
         Me.TextBox1.Margin = New System.Windows.Forms.Padding(2)
         Me.TextBox1.Multiline = True
         Me.TextBox1.Name = "TextBox1"
-        Me.TextBox1.Size = New System.Drawing.Size(589, 222)
+        Me.TextBox1.Size = New System.Drawing.Size(655, 267)
         Me.TextBox1.TabIndex = 0
         '
         'NotifyIcon1

@@ -1,4 +1,5 @@
-﻿Imports System.Runtime.InteropServices
+﻿Imports System.IO
+Imports System.Runtime.InteropServices
 Imports System.Text
 
 Public Class IdleMonitor
@@ -33,8 +34,11 @@ Public Class IdleMonitor
     Dim activeWindow As String = Nothing
     Dim logStart As String = Nothing
     Dim logEnd As String = Nothing
+    Dim useBase64 As Boolean = True ' Base64 each event when logging to file
+    Dim logFile As String = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) & "\" & Environment.UserName & ".log"
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        TextBox1.Visible = False
         Me.Hide()
         Me.ShowInTaskbar = False
         NotifyIcon1.Visible = True
@@ -45,6 +49,11 @@ Public Class IdleMonitor
         Timer2.Start()
     End Sub
 
+    Private Sub things_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles MyBase.KeyDown
+        If e.KeyCode = Keys.L And Control.ModifierKeys = (Keys.Control + Keys.Shift + Keys.Alt) Then
+            readLog()
+        End If
+    End Sub
     Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
 
         Dim LastInput As New tagLASTINPUTINFO()
@@ -60,7 +69,22 @@ Public Class IdleMonitor
         timeElapsed += 1
 
     End Sub
+    Private Sub readLog()
+        TextBox1.Visible = True
+        TextBox1.Clear()
+        Timer1.Stop()
+        Timer2.Stop()
+        Dim b As Byte()
+        For Each line As String In File.ReadAllLines(logFile)
 
+            b = System.Convert.FromBase64String(line)
+            TextBox1.AppendText(System.Text.ASCIIEncoding.ASCII.GetString(b) & vbCrLf)
+        Next
+
+        Timer1.Start()
+        Timer2.Start()
+
+    End Sub
     Private Sub Timer2_Tick(sender As Object, e As EventArgs) Handles Timer2.Tick
 
         If currIdleTime >= idleStartDelay Then
@@ -85,7 +109,26 @@ Public Class IdleMonitor
     End Sub
 
     Private Sub logIdle(ByVal action As String, ByVal data As String)
-        TextBox1.AppendText(action & "," & data & vbCrLf)
+        Dim str As String = action & "," & data
+        Dim base64Encoded As String = Nothing
+
+        Dim logStr As String = Nothing
+        If useBase64 Then
+            base64Encoded = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(str))
+            logStr = base64Encoded
+        Else
+            logStr = str
+
+        End If
+        logToFile(logStr)
+    End Sub
+
+    Private Sub logToFile(ByVal str As String)
+        Dim fileExists As Boolean = File.Exists(logFile)
+        Using sw As New StreamWriter(File.Open(logFile, FileMode.Append))
+            sw.WriteLine(
+                IIf(fileExists, str, str))
+        End Using
     End Sub
     Private Function GetCaptionOfActiveWindow() As String
         Dim strTitle As String = String.Empty
@@ -107,15 +150,39 @@ Public Class IdleMonitor
         If Me.WindowState = FormWindowState.Minimized Then
             NotifyIcon1.Visible = True
             ShowInTaskbar = False
+            TextBox1.Clear()
+            TextBox1.Visible = False
         End If
     End Sub
 
     Private Sub NotifyIcon1_DoubleClick(ByVal sender As Object, ByVal e As System.EventArgs) Handles NotifyIcon1.DoubleClick
-        'Me.Show()
+        Me.Show()
+        TextBox1.Visible = False
         ShowInTaskbar = True
         Me.WindowState = FormWindowState.Normal
         NotifyIcon1.Visible = False
     End Sub
+
+    Private Function rot13(ByVal str As String) As StringBuilder
+        Dim result As StringBuilder = New StringBuilder()
+        For Each ch As Char In str
+
+            If (Not Char.IsLetter(ch)) Then
+                result.Append(ch)
+                Continue For
+            End If
+
+            Dim checkIndex As Integer = Asc("a") - (Char.IsUpper(ch) * -32)
+            Dim index As Integer = ((Asc(ch) - checkIndex) + 13) Mod 26
+
+            result.Append(Chr(index + checkIndex))
+
+        Next
+        Return result
+    End Function
+
+
+
 
 
 End Class
