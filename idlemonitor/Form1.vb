@@ -19,25 +19,26 @@ Public Class Form1
 
     Public Structure tagLASTINPUTINFO
         Public cbSize As UInteger
-        'Public dwTime As Int32
         Public dwTime As Integer
     End Structure
 
     Private objExitWin As New cWrapExitWindows()
 
-    Dim Count As Integer = 0
-    Dim Count2 As Integer = 0
-    Dim count3 As Integer = 0
-    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        Label4.Text = Environment.UserName.ToString
-        Label1.Text = 0
-        Label2.Text = 0
+    Dim idleStartDelay As Integer = 5 ' Seconds idle before considering user as idle
+    Dim timeElapsed As Integer = 0 ' Total seconds elapsed
+    Dim currIdlePeriod As Integer = 0 ' How many seconds idle since hitting idleStartDelay
+    Dim totalIdleTime As Integer = 0 ' Total of all idle time after idleStartDelay
+    'TODO:
+    Dim currIdleTime As Integer = 0 ' How many seconds idle since hitting idleStartDelay (this can be refactored and just use currIdlePeriod-idleStartDelay)
+    Dim activeWindow As String = Nothing
+    Dim logStart As String = Nothing
+    Dim logEnd As String = Nothing
 
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Timer1.Interval = 1000
         Timer2.Interval = 1000
         Timer1.Start()
         Timer2.Start()
-
     End Sub
 
     Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
@@ -49,46 +50,38 @@ Public Class Form1
 
         If GetLastInputInfo(LastInput) Then
             IdleTime = System.Environment.TickCount - LastInput.dwTime
-            Label1.Text = Math.Round(IdleTime / 1000, 0)
+            currIdleTime = Math.Round(IdleTime / 1000, 0)
         End If
 
-        Label2.Text = CStr(Count)
-        Count = Count + 1
+        timeElapsed += 1
+
     End Sub
 
     Private Sub Timer2_Tick(sender As Object, e As EventArgs) Handles Timer2.Tick
 
-        'If CInt(Label1.Text) < 500 Then
-        '    Count = 0
-        'End If
-        'If Count = 300 Then 'five minutes
-        '    Timer2.Stop()
-        '    ' objExitWin.ExitWindows(cWrapExitWindows.Action.LogOff)
-        'End If
-
-        If CInt(Label1.Text) < 5 Then
-
-            count3 = Count2 + count3
-
-            Count2 = 0
-
-        Else
-            Count2 += 1
-
-
-
-        End If
-        Application.DoEvents()
-        ' DO WRITE LOG EVENTS
-        If CInt(Label1.Text) > 5 Then
-            Label3.Text = "Status:  IDLE (" & Count2 & ") " & GetCaptionOfActiveWindow()
-        Else
-            If CInt(Label1.Text) < 5 Then
-                Label3.Text = "Status ACTIVE Total Idle: " & count3
+        If currIdleTime >= idleStartDelay Then
+            currIdlePeriod += 1
+            activeWindow = GetCaptionOfActiveWindow()
+            If currIdlePeriod = 1 Then
+                logStart = Now() & "," & Environment.UserName & "," & activeWindow
             End If
+
+        Else
+
+                totalIdleTime += currIdlePeriod
+            If currIdlePeriod > 0 Then
+                logEnd = currIdlePeriod
+                logIdle(logStart, logEnd)
+            End If
+
+            currIdleTime = 0
+            currIdlePeriod = 0
         End If
 
+    End Sub
 
+    Private Sub logIdle(ByVal action As String, ByVal data As String)
+        TextBox1.AppendText(action & "," & data & vbCrLf)
     End Sub
     Private Function GetCaptionOfActiveWindow() As String
         Dim strTitle As String = String.Empty
