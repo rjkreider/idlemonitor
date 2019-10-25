@@ -1,7 +1,7 @@
 ﻿Imports System.Runtime.InteropServices
 Imports System.Text
 
-Public Class Form1
+Public Class IdleMonitor
 
     <DllImport("user32.dll")>
     Public Shared Function GetLastInputInfo(ByRef plii As tagLASTINPUTINFO) As [Boolean]
@@ -35,6 +35,10 @@ Public Class Form1
     Dim logEnd As String = Nothing
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Me.Hide()
+        Me.ShowInTaskbar = False
+        NotifyIcon1.Visible = True
+        ShowInTaskbar = False
         Timer1.Interval = 1000
         Timer2.Interval = 1000
         Timer1.Start()
@@ -68,7 +72,7 @@ Public Class Form1
 
         Else
 
-                totalIdleTime += currIdlePeriod
+            totalIdleTime += currIdlePeriod
             If currIdlePeriod > 0 Then
                 logEnd = currIdlePeriod
                 logIdle(logStart, logEnd)
@@ -94,6 +98,26 @@ Public Class Form1
         End If
         Return strTitle
     End Function
+
+    Private Sub NotifyIcon1_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles NotifyIcon1.MouseDoubleClick
+
+    End Sub
+
+    Private Sub IdleMonitor_Resize(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Resize, MyBase.Closing
+        If Me.WindowState = FormWindowState.Minimized Then
+            NotifyIcon1.Visible = True
+            ShowInTaskbar = False
+        End If
+    End Sub
+
+    Private Sub NotifyIcon1_DoubleClick(ByVal sender As Object, ByVal e As System.EventArgs) Handles NotifyIcon1.DoubleClick
+        'Me.Show()
+        ShowInTaskbar = True
+        Me.WindowState = FormWindowState.Normal
+        NotifyIcon1.Visible = False
+    End Sub
+
+
 End Class
 
 Public Class cWrapExitWindows
