@@ -42,6 +42,7 @@ Partial Class IdleMonitor
         Me.TextBox1.Margin = New System.Windows.Forms.Padding(2)
         Me.TextBox1.Multiline = True
         Me.TextBox1.Name = "TextBox1"
+        Me.TextBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both
         Me.TextBox1.Size = New System.Drawing.Size(655, 267)
         Me.TextBox1.TabIndex = 0
         '
