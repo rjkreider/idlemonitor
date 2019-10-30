@@ -25,7 +25,7 @@ Public Class IdleMonitor
 
     Private objExitWin As New cWrapExitWindows()
 
-    Dim idleStartDelay As Integer = 5 ' Seconds idle before considering user as idle
+    Dim idleStartDelay As Integer = 300 ' Seconds idle before considering user as idle
     Dim timeElapsed As Integer = 0 ' Total seconds elapsed
     Dim currIdlePeriod As Integer = 0 ' How many seconds idle since hitting idleStartDelay
     Dim totalIdleTime As Integer = 0 ' Total of all idle time after idleStartDelay
@@ -53,6 +53,12 @@ Public Class IdleMonitor
         If e.KeyCode = Keys.L And Control.ModifierKeys = (Keys.Control + Keys.Shift + Keys.Alt) Then
             readLog()
         End If
+        If e.KeyCode = Keys.X And Control.ModifierKeys = (Keys.Control + Keys.Shift + Keys.Alt) Then
+            Application.Exit()
+        End If
+        If e.KeyCode = Keys.O And Control.ModifierKeys = (Keys.Control + Keys.Shift + Keys.Alt) Then
+            logviewer.Show()
+        End If
     End Sub
     Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
 
@@ -76,7 +82,6 @@ Public Class IdleMonitor
         Timer2.Stop()
         Dim b As Byte()
         For Each line As String In File.ReadAllLines(logFile)
-
             b = System.Convert.FromBase64String(line)
             TextBox1.AppendText(System.Text.ASCIIEncoding.ASCII.GetString(b) & vbCrLf)
         Next
@@ -118,7 +123,6 @@ Public Class IdleMonitor
             logStr = base64Encoded
         Else
             logStr = str
-
         End If
         logToFile(logStr)
     End Sub
@@ -142,17 +146,20 @@ Public Class IdleMonitor
         Return strTitle
     End Function
 
-    Private Sub NotifyIcon1_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles NotifyIcon1.MouseDoubleClick
-
-    End Sub
-
     Private Sub IdleMonitor_Resize(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Resize, MyBase.Closing
+        ' Don't exit application, minimize to systemtray.
         If Me.WindowState = FormWindowState.Minimized Then
             NotifyIcon1.Visible = True
             ShowInTaskbar = False
             TextBox1.Clear()
             TextBox1.Visible = False
         End If
+    End Sub
+
+    Private Sub Form1_FormClosing(sender As Object, e As System.Windows.Forms.FormClosingEventArgs) Handles Me.FormClosing
+        ' Don't exit application, minimize to systemtray.
+        Me.WindowState = FormWindowState.Minimized
+        e.Cancel = True
     End Sub
 
     Private Sub NotifyIcon1_DoubleClick(ByVal sender As Object, ByVal e As System.EventArgs) Handles NotifyIcon1.DoubleClick
@@ -164,6 +171,7 @@ Public Class IdleMonitor
     End Sub
 
     Private Function rot13(ByVal str As String) As StringBuilder
+        ' Not using this anymore, but here JIC
         Dim result As StringBuilder = New StringBuilder()
         For Each ch As Char In str
 

@@ -57,6 +57,7 @@ Partial Class IdleMonitor
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(677, 304)
         Me.Controls.Add(Me.TextBox1)
+        Me.HelpButton = True
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Name = "IdleMonitor"
         Me.ResumeLayout(False)
